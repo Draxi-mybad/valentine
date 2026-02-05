@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Veux-tu être ma Valentine ?</title>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-image: url("IMG_8656.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 420px;
+      position: relative; /* nécessaire pour les larmes */
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    p {
+      margin: 0 0 20px;
+      font-size: 12px;
+      color: #ff000d;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      margin: 6px;
+      border-radius: 8px;
+      border: 0;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+
+    .yes {
+      background: #ff4d6d;
+      color: white;
+    }
+
+    .no {
+      background: #dbd4d4;
+      color: #333;
+    }
+
+    /* Animation lorsque l'on clique sur "Non" */
+    .wobble-btn {
+      animation: wobble 0.6s ease-in-out;
+    }
+
+    @keyframes wobble {
+      0% { transform: rotate(0); }
+      25% { transform: rotate(-12deg); }
+      50% { transform: rotate(12deg); }
+      75% { transform: rotate(-8deg); }
+      100% { transform: rotate(0); }
+    }
+
+    /* Diminue le bouton Oui pendant l'animation */
+    .dim-yes {
+      transform: translateY(-8px) scale(0.98);
+      opacity: 0.7;
+    }
+
+    /* Larmes animées */
+    .tear {
+      position: absolute;
+      top: 24px;
+      width: 8px;
+      height: 12px;
+      background: rgba(0,120,255,0.95);
+      border-radius: 50% 50% 60% 60%;
+      opacity: 0.95;
+      transform: translateY(0) rotate(0);
+      pointer-events: none;
+      animation: tear-fall 900ms cubic-bezier(.2,.9,.3,1) forwards;
+    }
+
+    @keyframes tear-fall {
+      0% { transform: translateY(0) rotate(0); opacity: 1; }
+      100% { transform: translateY(140px) rotate(20deg); opacity: 0; }
+    }
+
+    #response {
+      margin-top: 16px;
+      font-size: 18px;
+      color: #210000;
+      min-height: 28px;
+      font-weight: 700;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      display: inline-block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="dialog" aria-labelledby="title">
+    <h1 id="title">Winnie veux-tu être ma Valentine ?</h1>
+    <p>Dis oui stp 😰</p>
+
+    <div>
+      <button class="btn yes" id="yesBtn">Oui 💖</button>
+      <button class="btn no" id="noBtn">Non</button>
+    </div>
+
+    <div id="response" aria-live="polite">Réfléchis bien avant de cliquer</div>
+  </div>
+
+  <script>
+    const yes = document.getElementById("yesBtn");
+    const no = document.getElementById("noBtn");
+    const resp = document.getElementById("response");
+    const body = document.body;
+    const card = document.querySelector(".card");
+    const title = document.getElementById("title");
+
+    // Add global keyframes (only once)
+    if (!document.getElementById("effects-style")) {
+      const style = document.createElement("style");
+      style.id = "effects-style";
+      style.textContent = `
+        @keyframes romance {
+          0% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.05) rotate(-2deg); }
+          50% { transform: scale(1.08) rotate(2deg); }
+          75% { transform: scale(1.05) rotate(-1deg); }
+          100% { transform: scale(1.1) rotate(0deg); }
+        }
+        @keyframes shake {
+          0% { transform: translateX(0); }
+          25% { transform: translateX(-8px); }
+          50% { transform: translateX(8px); }
+          75% { transform: translateX(-6px); }
+          100% { transform: translateX(0); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    yes.addEventListener("click", () => {
+      resp.textContent = "Miammmmmmmm ! Merci Winnie 💕";
+      resp.style.color = "#222";
+      confetti();
+      removeRethink();
+    });
+
+    no.addEventListener("click", () => {
+      resp.textContent = "Ah bah d'accoooooooooooord ";
+      shake();
+      addRethinkButton();
+    });
+
+    function addRethinkButton() {
+      if (document.getElementById("rethinkBtn")) return;
+      const btn = document.createElement("button");
+      btn.className = "btn no";
+      btn.id = "rethinkBtn";
+      btn.textContent = "Réfléchis à nouveau";
+      btn.setAttribute("aria-label", "Réfléchis à nouveau");
+      no.parentElement.appendChild(btn);
+
+      btn.addEventListener("click", () => {
+        // Remet l'état initial
+        resp.textContent = "";
+        resp.style.color = "#222";
+        title.textContent = "Winnie veux-tu être ma Valentine ?";
+        body.style.background = ""; // revient au CSS (IMG_8656.jpg)
+        card.style.animation = "none";
+        removeRethink();
+        yes.focus();
+      });
+
+      btn.focus();
+    }
+
+    function removeRethink() {
+      const existing = document.getElementById("rethinkBtn");
+      if (existing) existing.remove();
+    }
+
+    function confetti() {
+      body.style.background =
+        "linear-gradient(135deg, #ff69b4, #ffb6c1, #ff1493)";
+      body.style.backgroundSize = "cover";
+      card.style.animation = "romance 0.6s ease-in-out";
+    }
+
+    function shake() {
+      body.style.background =
+        "linear-gradient(135deg, #8b0000, #ff1744)";
+      // shake la carte
+      card.style.animation = "shake 0.6s";
+
+      // titre / message
+      resp.textContent = "NONNNNNNNNNNNNN Winnie 😭😭😭😭😭😭😭😭😭 ";
+      resp.style.color = "#8b0000";
+
+      // bouton 'Non' fait un wobble
+      no.classList.add("wobble-btn");
+      no.addEventListener("animationend", () => no.classList.remove("wobble-btn"), { once: true });
+
+      // bouton 'Oui' s'affaisse légèrement
+      yes.classList.add("dim-yes");
+
+      // crée des larmes qui tombent
+      createTears(6);
+    }
+
+    function createTears(count) {
+      clearTears();
+      for (let i = 0; i < count; i++) {
+        const tear = document.createElement("span");
+        tear.className = "tear";
+        // position horizontale aléatoire à l'intérieur de la carte
+        tear.style.left = (10 + Math.random() * 80) + "%";
+        // petite variation de délai
+        tear.style.animationDelay = (Math.random() * 300) + "ms";
+        card.appendChild(tear);
+        tear.addEventListener("animationend", () => tear.remove());
+      }
+    }
+
+    function clearTears() {
+      document.querySelectorAll(".tear").forEach(t => t.remove());
+      yes.classList.remove("dim-yes");
+      no.classList.remove("wobble-btn");
+      card.style.animation = "none";
+    }
+  </script>
+</body>
+</html>
